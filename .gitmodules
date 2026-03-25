@@ -1,0 +1,10 @@
+# Even Hub app submodules
+# Each app is an independent git repo under apps/
+#
+# To add a new app:
+#   git submodule add git@github.com:plungarini/<app-name>-even.git apps/<app-name>
+#
+# Format:
+# [submodule "<app-name>"]
+#     path = apps/<app-name>
+#     url = git@github.com:plungarini/<app-name>-even.git

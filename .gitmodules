@@ -10,4 +10,4 @@
 #     url = git@github.com:plungarini/<app-name>-even.git
 [submodule "apps/reddit-client"]
 	path = apps/reddit-client
-	url = https://github.com/plungarini/reddit-client-even.git
+	url = git@github.com:plungarini/reddit-client-even.git

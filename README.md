@@ -21,7 +21,7 @@ even-apps/
 
 | App | Description |
 |-----|-------------|
-| *(no apps yet — add the first one!)* | |
+| [`reddit-client`](./apps/reddit-client) | Full-featured Reddit client with auth, caching, background sync, and post interactions |
 
 ## Cloning
 
@@ -56,6 +56,8 @@ npm run qr     # Generate QR code to load on glasses
 
 - [`CLAUDE.md`](./CLAUDE.md) — comprehensive guide for AI agents and developers: SDK reference, submodule setup, app conventions, dev workflow
 - [`docs/even-hub-research.md`](./docs/even-hub-research.md) — deep research doc covering the Even Hub SDK, UI model, input events, packaging, and all known API details
+- [`docs/reddit-client-research.md`](./docs/reddit-client-research.md) — Reddit API research based on reddit-pi service
+- [`docs/reddit-client-implementation-plan.md`](./docs/reddit-client-implementation-plan.md) — Detailed implementation plan for the Reddit client
 
 ## Resources
 

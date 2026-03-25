@@ -13,20 +13,20 @@
  * The actual submodule add must be done manually (requires GitHub repo to exist first).
  */
 
-import readline from 'node:readline'
+import readline from 'node:readline';
 
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
-const ask = (q) => new Promise((res) => rl.question(q, res))
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+const ask = (q) => new Promise((res) => rl.question(q, res));
 
-console.log('\n=== Even Apps — Add New App ===\n')
+console.log('\n=== Even Apps — Add New App ===\n');
 
-const name = (await ask('App name (kebab-case, e.g. "weather"): ')).trim().toLowerCase()
-const githubUser = (await ask('GitHub username (default: plungarini): ')).trim() || 'plungarini'
-rl.close()
+const name = (await ask('App name (kebab-case, e.g. "weather"): ')).trim().toLowerCase();
+const githubUser = (await ask('GitHub username (default: plungarini): ')).trim() || 'plungarini';
+rl.close();
 
-const repoName = `${name}-even`
-const sshUrl = `git@github.com:${githubUser}/${repoName}.git`
-const appPath = `apps/${name}`
+const repoName = `${name}-even`;
+const sshUrl = `git@github.com:${githubUser}/${repoName}.git`;
+const appPath = `apps/${name}`;
 
 console.log(`
 Steps to add "${name}" as a submodule:
@@ -34,6 +34,7 @@ Steps to add "${name}" as a submodule:
 1. Create and push the GitHub repo (run inside the new app directory):
    git init
    git flow init -d
+   git push -u origin master
    gh repo create ${githubUser}/${repoName} --public --source=. --remote=origin --push
    git push -u origin develop
 
@@ -50,11 +51,11 @@ Steps to add "${name}" as a submodule:
 
 4. Required files in the app root:
    - index.html
-   - app.json  (package_id: "com.${githubUser.replace(/-/g, '')}.${name.replace(/-/g, '')}")
+   - app.json  (package_id: "com.${githubUser.replaceAll('-', '')}.${name.replaceAll('-', '')}")
    - package.json  (scripts: dev, build, qr, pack)
    - vite.config.ts
    - tsconfig.json
    - src/main.ts
 
 See CLAUDE.md for the full app scaffold template.
-`)
+`);

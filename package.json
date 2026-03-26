@@ -7,5 +7,8 @@
   "scripts": {
     "add-app": "node scripts/add-app.js",
     "update": "git submodule update --remote --merge"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0"
   }
 }

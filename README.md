@@ -19,9 +19,9 @@ even-apps/
 
 ## Apps
 
-| App | Description |
-|-----|-------------|
-| *(no apps yet — add the first one!)* | |
+| App                                 | Description                                                                          |
+| ----------------------------------- | ------------------------------------------------------------------------------------ |
+| [`reddit-feed`](./apps/reddit-feed) | Full-featured Reddit feed with auth, caching, background sync, and post interactions |
 
 ## Cloning
 
@@ -51,11 +51,6 @@ npm install
 npm run dev    # Start Vite dev server
 npm run qr     # Generate QR code to load on glasses
 ```
-
-## Documentation
-
-- [`CLAUDE.md`](./CLAUDE.md) — comprehensive guide for AI agents and developers: SDK reference, submodule setup, app conventions, dev workflow
-- [`docs/even-hub-research.md`](./docs/even-hub-research.md) — deep research doc covering the Even Hub SDK, UI model, input events, packaging, and all known API details
 
 ## Resources
 

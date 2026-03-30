@@ -1,11 +1,14 @@
 {
-  "name": "even-apps",
-  "version": "1.0.0",
-  "description": "Monorepo of Even Hub apps for Even Realities G2 smart glasses",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "add-app": "node scripts/add-app.js",
-    "update": "git submodule update --remote --merge"
-  }
+	"description": "Monorepo of Even Hub apps for Even Realities smart glasses",
+	"devDependencies": {
+		"@types/node": "^25.5.0"
+	},
+	"name": "even-apps",
+	"private": true,
+	"scripts": {
+		"add-app": "node scripts/add-app.js",
+		"update": "git submodule update --remote --merge"
+	},
+	"type": "module",
+	"version": "1.1.0"
 }

@@ -8,3 +8,6 @@
 # [submodule "<app-name>"]
 #     path = apps/<app-name>
 #     url = git@github.com:plungarini/<app-name>-even.git
+[submodule "apps/reddit-feed"]
+	path = apps/reddit-feed
+	url = git@github.com:plungarini/reddit-feed-even.git

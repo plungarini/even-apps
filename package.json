@@ -6,7 +6,7 @@
 	"name": "even-apps",
 	"private": true,
 	"scripts": {
-		"add-app": "node scripts/add-app.js",
+		"create-app": "node scripts/create-app.js",
 		"update": "git submodule update --remote --merge"
 	},
 	"type": "module",

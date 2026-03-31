@@ -504,7 +504,8 @@ console.log('\nInitializing git repo...\n');
 try {
 	run('git init', outDir);
 	run('git add .', outDir);
-	run('git commit -m "feat: initial scaffold"', outDir);
+	run('git commit -m "core: initial scaffold"', outDir);
+	run('git rm -r --cached ' + appPath, rootDir);
 } catch {
 	console.warn('\n⚠  git init/commit failed — run manually if needed.\n');
 }
@@ -525,8 +526,7 @@ console.log(
 		'2. Register as a submodule (from even-apps root):',
 		'   git submodule add ' + sshUrl + ' ' + appPath,
 		'   git add .gitmodules ' + appPath,
-		'   git commit -m "feat: add ' + name + ' as submodule"',
+		'   git commit -m "feat(submodules): add ' + name + ' as submodule"',
 		'',
 	].join('\n'),
 );
-

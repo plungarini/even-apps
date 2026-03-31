@@ -505,6 +505,7 @@ try {
 	run('git init', outDir);
 	run('git add .', outDir);
 	run('git commit -m "core: initial scaffold"', outDir);
+	run('git flow init -d');
 	run('git rm -r --cached ' + appPath, rootDir);
 } catch {
 	console.warn('\n⚠  git init/commit failed — run manually if needed.\n');
@@ -522,6 +523,7 @@ console.log(
 		'1. Create the GitHub repo and push:',
 		'   cd ' + appPath,
 		'   gh repo create ' + githubUser + '/' + repoName + ' --public --source=. --remote=origin --push',
+		'   git push -u origin master',
 		'',
 		'2. Register as a submodule (from even-apps root):',
 		'   git submodule add ' + sshUrl + ' ' + appPath,

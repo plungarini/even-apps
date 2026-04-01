@@ -77,6 +77,7 @@ write(
 				build: 'tsc && vite build',
 				qr: 'node ../../scripts/qr.mjs',
 				pack: 'npm run build && evenhub-cli pack',
+				emulator: 'npx evenhub-simulator http://localhost:5173/',
 			},
 			dependencies: {
 				'class-variance-authority': '^0.7.1',

@@ -7,6 +7,7 @@
 	"private": true,
 	"scripts": {
 		"create-app": "node scripts/create-app.js",
+		"emulator": "node scripts/emulator.mjs",
 		"update": "git submodule update --remote --merge"
 	},
 	"type": "module",

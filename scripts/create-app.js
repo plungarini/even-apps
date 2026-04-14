@@ -3,8 +3,8 @@
  * Helper script to scaffold a new Even Hub app submodule.
  *
  * Usage:
- *   node scripts/add-app.js
- *   npm run add-app
+ *   node scripts/create-app.js
+ *   npm run create-app
  *
  * This script:
  *   1. Prompts for app name and GitHub user
@@ -76,7 +76,7 @@ write(
 				dev: 'vite --host 0.0.0.0 --port 5173',
 				build: 'tsc && vite build',
 				qr: 'node ../../scripts/qr.mjs',
-				pack: 'npm run build && evenhub-cli pack',
+				pack: 'npm run build && evenhub pack app.json dist -o ' + name + '.ehpk',
 				emulator: 'npx evenhub-simulator http://localhost:5173/',
 			},
 			dependencies: {
@@ -94,6 +94,7 @@ write(
 				'@evenrealities/evenhub-cli': '^0.1.11',
 				'@evenrealities/evenhub-simulator': '^0.6.2',
 				'@tailwindcss/vite': '^4.2.2',
+				'@types/node': '^25.5.0',
 				'@types/react': '^19.2.14',
 				'@types/react-dom': '^19.2.3',
 				'@vitejs/plugin-react': '^6.0.1',
@@ -503,7 +504,7 @@ write(
 		'',
 		'```',
 		'src/',
-		'  glass/                    — Glasses display layer',
+		'  glasses/                  — Glasses display layer',
 		'    shared.ts               — AppSnapshot + AppActions types',
 		'    selectors.ts            — Screen router wiring',
 		'    splash.ts               — Splash screen',
@@ -528,8 +529,8 @@ write(
 		'',
 		'## Adding a screen',
 		'',
-		'1. Create `src/glass/screens/<name>/` with `<name>.ts` (logic) and `<Name>View.ts` (display)',
-		'2. Register it in `src/glass/selectors.ts`',
+		'1. Create `src/glasses/screens/<name>/` with `<name>.ts` (logic) and `<Name>View.ts` (display)',
+		'2. Register it in `src/glasses/selectors.ts`',
 		'3. Add a route pattern to `deriveScreen` in `AppGlasses.tsx`',
 	].join('\n'),
 );
@@ -550,7 +551,7 @@ try {
 	run('git init', outDir);
 	run('git add .', outDir);
 	run('git commit -m "core: initial scaffold"', outDir);
-	run('git flow init -d');
+	run('git flow init -d', outDir);
 	run('git rm -r --cached ' + appPath, rootDir);
 } catch {
 	console.warn('\n⚠  git init/commit failed — run manually if needed.\n');
@@ -568,7 +569,7 @@ console.log(
 		'1. Create the GitHub repo and push:',
 		'   cd ' + appPath,
 		'   gh repo create ' + githubUser + '/' + repoName + ' --public --source=. --remote=origin --push',
-		'   git push -u origin master',
+		'   git push -u origin develop',
 		'',
 		'2. Register as a submodule (from even-apps root):',
 		'   git submodule add ' + sshUrl + ' ' + appPath,

@@ -37,7 +37,7 @@ even-apps/
 ├── docs/
 │   └── even-hub-research.md   # Deep reference: SDK, CLI, UI model, lifecycle, etc.
 └── scripts/
-    └── add-app.js             # Helper: scaffold a new app submodule
+    └── create-app.js          # Helper: scaffold a new app submodule
 ```
 
 Each app in `apps/` is an **independent Git repository** linked via Git submodules. The app itself is a standard TypeScript + Vite web app targeting the Even Hub SDK.

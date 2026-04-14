@@ -12,7 +12,7 @@ even-apps/
 ├── docs/
 │   └── even-hub-research.md   # Deep reference: SDK, UI model, lifecycle, packaging
 ├── scripts/
-│   └── add-app.js             # Helper to scaffold a new app submodule
+│   └── create-app.js          # Helper to scaffold a new app submodule
 ├── CLAUDE.md      # AI agent guide + submodule guidelines
 └── README.md      # This file
 ```

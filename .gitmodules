@@ -11,9 +11,6 @@
 [submodule "apps/reddit-feed"]
 	path = apps/reddit-feed
 	url = git@github.com:plungarini/reddit-feed-even.git
-[submodule "apps/carnav"]
-	path = apps/carnav
-	url = git@github.com:plungarini/carnav-even.git
 [submodule "apps/smokeless"]
 	path = apps/smokeless
 	url = git@github.com:plungarini/smokeless-even.git

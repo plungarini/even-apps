@@ -6,9 +6,10 @@
 	"name": "even-apps",
 	"private": true,
 	"scripts": {
-		"add-app": "node scripts/add-app.js",
+		"create-app": "node scripts/create-app.js",
+		"emulator": "node scripts/emulator.mjs",
 		"update": "git submodule update --remote --merge"
 	},
 	"type": "module",
-	"version": "1.1.0"
+	"version": "1.2.0"
 }

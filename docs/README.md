@@ -10,7 +10,7 @@ The G2 are smart glasses with dual micro-LED displays (one per lens), no camera,
 - [Display and UI](display.md): Canvas (576x288), container model, text/list/image containers, font and Unicode support
 - [Input events](input-events.md): Touch, ring, head gestures, event delivery and quirks
 - [Page lifecycle](page-lifecycle.md): createStartUpPageContainer, rebuild, textContainerUpgrade, updateImageRawData, shutdown, callEvenApp
-- [Device APIs](device-apis.md): Audio, device info, user info, local storage, SDK limitations
+- [Device APIs](device-apis.md): Audio, device info, user info, SDK storage, SDK limitations
 - [Error codes](error-codes.md): Result codes for all operations, SDK JSON compatibility
 - [UI patterns](ui-patterns.md): Fake buttons, selection highlights, progress bars, image-based apps, page flipping
 - [Browser UI](browser-ui.md): even-toolkit design system and component library for WebView settings pages
@@ -21,9 +21,11 @@ The G2 are smart glasses with dual micro-LED displays (one per lens), no camera,
 
 | App | Description | Source |
 |-----|-------------|--------|
+| [demo](https://github.com/nickustinov/demo-app-g2) | SDK feature showcase: all container types, max containers (4 img + 8 other), Unicode glyphs, events inspector | **Start here** |
 | [chess](https://github.com/dmyster145/EvenChess) | Full app with tests, linting, modular architecture | Complex reference |
 | [reddit](https://github.com/fuutott/rdt-even-g2-rddit-client) | Clean app with `app.json` packaging, API proxy, evenhub-cli integration | Packaging reference |
 | [weather](https://github.com/nickustinov/weather-even-g2) | Settings UI with even-toolkit, vite-plugin.ts for even-dev | Simple reference |
 | [tesla](https://github.com/nickustinov/tesla-even-g2) | Tesla vehicle status and controls | Image-based rendering, backend server |
 | [pong](https://github.com/nickustinov/pong-even-g2) | Pong game | Canvas-rendered game, image container |
 | [snake](https://github.com/nickustinov/snake-even-g2) | Snake game | Canvas-rendered game, image container |
+| [flappy-g2](https://github.com/200even/flappy-g2) | Flappy Bird clone | Tap-to-flap game, image container, 4-bit greyscale |

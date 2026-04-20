@@ -14,3 +14,6 @@
 [submodule "apps/smokeless"]
 	path = apps/smokeless
 	url = git@github.com:plungarini/smokeless-even.git
+[submodule "apps/the-void"]
+	path = apps/the-void
+	url = git@github.com:plungarini/the-void-even.git

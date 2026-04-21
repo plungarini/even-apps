@@ -17,3 +17,6 @@
 [submodule "apps/the-void"]
 	path = apps/the-void
 	url = git@github.com:plungarini/the-void-even.git
+[submodule "apps/phase"]
+	path = apps/phase
+	url = git@github.com:plungarini/phase-even.git

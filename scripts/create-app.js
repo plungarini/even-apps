@@ -19,8 +19,21 @@ import path from 'node:path';
 import readline from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-const ask = (q) => new Promise((res) => rl.question(q, res));
+// Non-interactive mode: `node create-app.js --name <n> [--user <u>] [--display <d>]`
+const argv = process.argv.slice(2);
+const argMap = {};
+for (let i = 0; i < argv.length; i++) {
+	if (argv[i].startsWith('--')) {
+		argMap[argv[i].slice(2)] = argv[i + 1];
+		i++;
+	}
+}
+const nonInteractive = Boolean(argMap.name);
+
+const rl = nonInteractive
+	? null
+	: readline.createInterface({ input: process.stdin, output: process.stdout });
+const ask = (q) => (nonInteractive ? Promise.resolve('') : new Promise((res) => rl.question(q, res)));
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -38,11 +51,11 @@ function run(cmd, cwd) {
 
 console.log('\n=== Even Apps — Add New App ===\n');
 
-const name = (await ask('App name (kebab-case, e.g. "weather"): ')).trim().toLowerCase();
-const githubUser = (await ask('GitHub username (default: plungarini): ')).trim() || 'plungarini';
+const name = (argMap.name || (await ask('App name (kebab-case, e.g. "weather"): '))).trim().toLowerCase();
+const githubUser = (argMap.user || (await ask('GitHub username (default: plungarini): ')).trim()) || 'plungarini';
 const defaultDisplay = name.replaceAll('-', ' ').replaceAll(/\b\w/g, (c) => c.toUpperCase());
-const displayName = (await ask('Display name (default: "' + defaultDisplay + '"): ')).trim() || defaultDisplay;
-rl.close();
+const displayName = (argMap.display || (await ask('Display name (default: "' + defaultDisplay + '"): '))).trim() || defaultDisplay;
+if (rl) rl.close();
 
 // ─── derived values ──────────────────────────────────────────────────────────
 
@@ -90,9 +103,9 @@ write(
 				'upng-js': '^2.1.0',
 			},
 			devDependencies: {
-				'@evenrealities/even_hub_sdk': '^0.0.9',
-				'@evenrealities/evenhub-cli': '^0.1.11',
-				'@evenrealities/evenhub-simulator': '^0.6.2',
+				'@evenrealities/even_hub_sdk': '^0.0.10',
+				'@evenrealities/evenhub-cli': '^0.1.12',
+				'@evenrealities/evenhub-simulator': '^0.7.2',
 				'@tailwindcss/vite': '^4.2.2',
 				'@types/node': '^25.5.0',
 				'@types/react': '^19.2.14',

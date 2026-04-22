@@ -20,3 +20,6 @@
 [submodule "apps/phase"]
 	path = apps/phase
 	url = git@github.com:plungarini/phase-even.git
+[submodule "apps/this-day"]
+	path = apps/this-day
+	url = git@github.com:plungarini/this-day-even.git

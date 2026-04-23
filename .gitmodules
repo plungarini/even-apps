@@ -23,3 +23,6 @@
 [submodule "apps/this-day"]
 	path = apps/this-day
 	url = git@github.com:plungarini/this-day-even.git
+[submodule "apps/birdie"]
+	path = apps/birdie
+	url = git@github.com:plungarini/birdie-even.git

@@ -26,3 +26,6 @@
 [submodule "apps/birdie"]
 	path = apps/birdie
 	url = git@github.com:plungarini/birdie-even.git
+[submodule "apps/blackjack"]
+	path = apps/blackjack
+	url = git@github.com:plungarini/blackjack-even.git

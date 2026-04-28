@@ -324,6 +324,19 @@ await bridge.textContainerUpgrade(new TextContainerUpgrade({
 }))
 ```
 
+### Bridge Local Storage (persistent storage)
+
+The only storage that survives app/glasses restarts inside the Even Hub WebView:
+
+```typescript
+await bridge.setLocalStorage('key', 'value') // returns boolean
+const value = await bridge.getLocalStorage('key') // returns string
+```
+
+**Browser `localStorage` and `IndexedDB` are wiped** when the WebView restarts (app update, glasses reconnect, OS memory pressure). Any Firebase Auth setup with `browserLocalPersistence` will appear to lose its session on every cold start. For auth that must survive restarts, mirror your session pointer into Bridge Local Storage and rehydrate from there on boot.
+
+There is no `removeLocalStorage` — write an empty string to delete.
+
 ### Detecting launch source (SDK v0.0.9+)
 
 ```typescript
@@ -391,6 +404,12 @@ git flow init -d    # creates master + develop, sets prefixes
 - `hotfix/*` — urgent fixes to master
 
 The root repo tracks the `master` commit hash of each submodule.
+
+### Commit Rules
+
+- **NEVER commit unless the user explicitly tells you to.** Always ask for confirmation before running `git commit`.
+- When committing, only commit on the relevant submodule (e.g., `apps/blackjack`), never on the root repo unless explicitly asked.
+- Never run `git push`, `git reset`, `git rebase`, or other destructive git operations without explicit user confirmation.
 
 ---
 

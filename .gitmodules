@@ -14,3 +14,18 @@
 [submodule "apps/smokeless"]
 	path = apps/smokeless
 	url = git@github.com:plungarini/smokeless-even.git
+[submodule "apps/the-void"]
+	path = apps/the-void
+	url = git@github.com:plungarini/the-void-even.git
+[submodule "apps/phase"]
+	path = apps/phase
+	url = git@github.com:plungarini/phase-even.git
+[submodule "apps/this-day"]
+	path = apps/this-day
+	url = git@github.com:plungarini/this-day-even.git
+[submodule "apps/birdie"]
+	path = apps/birdie
+	url = git@github.com:plungarini/birdie-even.git
+[submodule "apps/blackjack"]
+	path = apps/blackjack
+	url = git@github.com:plungarini/blackjack-even.git

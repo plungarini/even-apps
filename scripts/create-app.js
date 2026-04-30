@@ -11,6 +11,12 @@
  *   2. Scaffolds the full app directory with all required files
  *   3. Runs npm install
  *   4. Initializes git and prints submodule instructions
+ *
+ * Architecture:
+ *   - Web UI (App.tsx)     uses even-toolkit/web      — UI components
+ *   - Glasses HUD (pure TS) uses @evenrealities/even_hub_sdk directly
+ *
+ * The two layers run side-by-side: main.tsx side-effect-imports glasses-main.ts.
  */
 
 import { execSync } from 'node:child_process';
@@ -19,8 +25,19 @@ import path from 'node:path';
 import readline from 'node:readline';
 import { fileURLToPath } from 'node:url';
 
-const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-const ask = (q) => new Promise((res) => rl.question(q, res));
+// Non-interactive mode: `node create-app.js --name <n> [--user <u>] [--display <d>]`
+const argv = process.argv.slice(2);
+const argMap = {};
+for (let i = 0; i < argv.length; i++) {
+	if (argv[i].startsWith('--')) {
+		argMap[argv[i].slice(2)] = argv[i + 1];
+		i++;
+	}
+}
+const nonInteractive = Boolean(argMap.name);
+
+const rl = nonInteractive ? null : readline.createInterface({ input: process.stdin, output: process.stdout });
+const ask = (q) => (nonInteractive ? Promise.resolve('') : new Promise((res) => rl.question(q, res)));
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -38,11 +55,12 @@ function run(cmd, cwd) {
 
 console.log('\n=== Even Apps — Add New App ===\n');
 
-const name = (await ask('App name (kebab-case, e.g. "weather"): ')).trim().toLowerCase();
-const githubUser = (await ask('GitHub username (default: plungarini): ')).trim() || 'plungarini';
+const name = (argMap.name || (await ask('App name (kebab-case, e.g. "weather"): '))).trim().toLowerCase();
+const githubUser = argMap.user || (await ask('GitHub username (default: plungarini): ')).trim() || 'plungarini';
 const defaultDisplay = name.replaceAll('-', ' ').replaceAll(/\b\w/g, (c) => c.toUpperCase());
-const displayName = (await ask('Display name (default: "' + defaultDisplay + '"): ')).trim() || defaultDisplay;
-rl.close();
+const displayName =
+	(argMap.display || (await ask('Display name (default: "' + defaultDisplay + '"): '))).trim() || defaultDisplay;
+if (rl) rl.close();
 
 // ─── derived values ──────────────────────────────────────────────────────────
 
@@ -69,7 +87,6 @@ write(
 	JSON.stringify(
 		{
 			name: repoName,
-			version: '0.0.0',
 			private: true,
 			type: 'module',
 			scripts: {
@@ -80,27 +97,27 @@ write(
 				emulator: 'npx evenhub-simulator http://localhost:5173/',
 			},
 			dependencies: {
+				'@evenrealities/even_hub_sdk': '^0.0.10',
+				'@evenrealities/pretext': '^0.1.4',
 				'class-variance-authority': '^0.7.1',
 				clsx: '^2.1.1',
-				'even-toolkit': '^1.5.0',
+				'even-toolkit': '^1.7.2',
 				react: '^19.2.4',
 				'react-dom': '^19.2.4',
 				'react-router': '^7.13.2',
 				'tailwind-merge': '^3.0.0',
-				'upng-js': '^2.1.0',
 			},
 			devDependencies: {
-				'@evenrealities/even_hub_sdk': '^0.0.9',
-				'@evenrealities/evenhub-cli': '^0.1.11',
-				'@evenrealities/evenhub-simulator': '^0.6.2',
-				'@tailwindcss/vite': '^4.2.2',
+				'@evenrealities/evenhub-cli': '^0.1.13',
+				'@evenrealities/evenhub-simulator': '^0.7.3',
+				'@tailwindcss/vite': '^4.2.4',
 				'@types/node': '^25.5.0',
 				'@types/react': '^19.2.14',
 				'@types/react-dom': '^19.2.3',
 				'@vitejs/plugin-react': '^6.0.1',
-				tailwindcss: '^4.2.2',
-				typescript: '~5.0.0',
-				vite: '^8.0.3',
+				tailwindcss: '^4.2.4',
+				typescript: '~5.7.0',
+				vite: '^8.0.10',
 			},
 		},
 		null,
@@ -184,16 +201,6 @@ write(
 		"    outDir: 'dist',",
 		'    emptyOutDir: true,',
 		'    chunkSizeWarningLimit: 1000,',
-		'    rolldownOptions: {',
-		'      output: {',
-		'        codeSplitting: {',
-		'          groups: [',
-		"            { name: 'react', test: /node_modules[\\\\/]react/, priority: 20 },",
-		"            { name: 'vendor', test: /node_modules/, priority: 10 },",
-		'          ],',
-		'        },',
-		'      },',
-		'    },',
 		'  },',
 		'});',
 		'',
@@ -226,21 +233,20 @@ write(
 );
 
 // ─── src/main.tsx ─────────────────────────────────────────────────────────────
+// Side-effect-imports glasses-main so the HUD bridge boots alongside the React UI.
 
 write(
 	path.join(outDir, 'src', 'main.tsx'),
 	[
 		"import { StrictMode } from 'react';",
 		"import { createRoot } from 'react-dom/client';",
-		"import { HashRouter } from 'react-router';",
 		"import App from './App';",
 		"import './app.css';",
+		"import './glasses-main';",
 		'',
 		"createRoot(document.getElementById('root')!).render(",
 		'  <StrictMode>',
-		'    <HashRouter>',
-		'      <App />',
-		'    </HashRouter>',
+		'    <App />',
 		'  </StrictMode>,',
 		');',
 		'',
@@ -248,42 +254,25 @@ write(
 );
 
 // ─── src/App.tsx ──────────────────────────────────────────────────────────────
+// Web UI only. The HUD runs independently via glasses-main.ts.
 
 write(
 	path.join(outDir, 'src', 'App.tsx'),
 	[
-		"import { useState } from 'react';",
-		"import { AppShell, NavBar, ScreenHeader, Card } from 'even-toolkit/web';",
-		"import type { NavItem } from 'even-toolkit/web';",
-		"import { AppGlasses } from './glasses/AppGlasses';",
-		"import type { AppSnapshot } from './glasses/shared';",
-		'',
-		'const tabs: NavItem[] = [',
-		"  { id: 'home', label: 'Home' },",
-		"  { id: 'settings', label: 'Settings' },",
-		'];',
+		"import { AppShell, Card } from 'even-toolkit/web';",
 		'',
 		'export default function App() {',
-		"  const [tab, setTab] = useState('home');",
-		'',
-		'  const snapshot: AppSnapshot = {',
-		"    message: 'Hello from " + displayName + "',",
-		'  };',
-		'',
 		'  return (',
-		'    <>',
-		'      <AppGlasses snapshot={snapshot} />',
-		'      <AppShell header={<NavBar items={tabs} activeId={tab} onNavigate={setTab} />}>',
-		'        <div className="px-3 pt-4 pb-8">',
-		'          <ScreenHeader title="' + displayName + '" />',
-		'          <Card>',
-		'            <p className="text-[15px] text-text-dim">',
-		'              Hello from ' + displayName + '!',
-		'            </p>',
-		'          </Card>',
-		'        </div>',
-		'      </AppShell>',
-		'    </>',
+		'    <AppShell>',
+		'      <div className="px-3 pt-4 pb-8">',
+		'        <Card>',
+		'          <h1 className="text-lg font-semibold mb-2">' + displayName + '</h1>',
+		'          <p className="text-[15px] text-text-dim">',
+		'            Open the Even app on your phone to project this app onto the G2 glasses.',
+		'          </p>',
+		'        </Card>',
+		'      </div>',
+		'    </AppShell>',
 		'  );',
 		'}',
 		'',
@@ -292,8 +281,6 @@ write(
 
 // ─── src/app.css ─────────────────────────────────────────────────────────────
 
-// Tailwind v4: @import "tailwindcss" is the only config needed when using
-// the @tailwindcss/vite plugin. No tailwind.config.js required.
 write(
 	path.join(outDir, 'src', 'app.css'),
 	[
@@ -310,184 +297,393 @@ write(
 write(
 	path.join(outDir, '.gitignore'),
 	[
-		'# Dependencies\nnode_modules/',
-		'# Build output\ndist/',
-		'# Even Hub package files\n*.ehpk',
-		'# Environment variables\n.env',
-		'# IDE\n.vscode/',
-		'# OS\n.DS_Store\nThumbs.db',
-		'# Logs\n*.log',
+		'# Dependencies',
+		'node_modules/',
+		'# Build output',
+		'dist/',
+		'# Even Hub package files',
+		'*.ehpk',
+		'# Environment variables',
+		'.env',
+		'# IDE',
+		'.vscode/',
+		'# OS',
+		'.DS_Store',
+		'Thumbs.db',
+		'# Logs',
+		'*.log',
+		'',
 	].join('\n'),
 );
 
-// ─── src/glasses/shared.ts ─────────────────────────────────────────────────────
+// ─── src/glasses/types.ts ────────────────────────────────────────────────────
 
 write(
-	path.join(outDir, 'src', 'glasses', 'shared.ts'),
+	path.join(outDir, 'src', 'glasses', 'types.ts'),
 	[
-		'// shared.ts — Global snapshot type for this app.',
-		'// All glass screens read from AppSnapshot.',
-		'// GlassAction (from even-toolkit/types) is the standard gesture type — no need to redefine it.',
+		"import type { ImageContainerProperty } from '@evenrealities/even_hub_sdk';",
 		'',
-		'export interface AppSnapshot {',
+		'export interface HudTextDescriptor {',
+		'  containerID: number;',
+		'  containerName: string;',
+		'  xPosition: number;',
+		'  yPosition: number;',
+		'  width: number;',
+		'  height: number;',
+		'  paddingLength?: number;',
+		'  borderWidth?: number;',
+		'  borderRadius?: number;',
+		'  borderColor?: number;',
+		'  isEventCapture?: number;',
+		'}',
+		'',
+		'export interface HudLayoutDescriptor {',
+		'  key: string;',
+		'  textDescriptors: HudTextDescriptor[];',
+		'  imageObject?: ImageContainerProperty[];',
+		'}',
+		'',
+		'export interface HudRenderState {',
+		'  layout: HudLayoutDescriptor;',
+		'  textContents: Record<string, string>;',
+		'}',
+		'',
+		'export interface HudViewState {',
+		"  status: 'loading' | 'ready' | 'error';",
+		'  now: Date;',
 		'  message: string;',
+		'  errorMessage?: string;',
 		'}',
+		'',
 	].join('\n'),
 );
 
-// ─── src/glasses/screens/home/HomeView.ts ──────────────────────────────────────
+// ─── src/glasses/utils.ts ────────────────────────────────────────────────────
+// Layout instantiation + text alignment helpers (centerLine, alignRow, alignThree).
 
 write(
-	path.join(outDir, 'src', 'glasses', 'screens', 'home', 'HomeView.ts'),
+	path.join(outDir, 'src', 'glasses', 'utils.ts'),
 	[
-		'// HomeView.ts — Pure display function for the home screen.',
-		'// Receives pre-processed HomeViewData, returns DisplayData for the glasses.',
-		'// No logic, no snapshot access, no side effects — only rendering (the component template).',
+		"import { TextContainerProperty } from '@evenrealities/even_hub_sdk';",
+		"import { getTextWidth } from '@evenrealities/pretext';",
+		"import type { HudLayoutDescriptor } from './types';",
 		'',
-		"import { buildScrollableContent } from 'even-toolkit/glass-display-builders';",
-		"import { buildStaticActionBar } from 'even-toolkit/action-bar';",
-		"import type { DisplayData } from 'even-toolkit/types';",
+		'const CONTAINER_CONTENT_LIMIT = 950;',
+		"const SPACE_WIDTH = getTextWidth(' ') || 5;",
 		'',
-		'export interface HomeViewData {',
-		'  message: string;',
-		'  scrollPos: number;',
+		'export function truncate(value: string, maxLength: number): string {',
+		'  if (value.length <= maxLength) return value;',
+		'  return `${value.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;',
 		'}',
 		'',
-		'export function renderHomeView(data: HomeViewData): DisplayData {',
-		'  return buildScrollableContent({',
-		"    title: 'Home',",
-		"    actionBar: buildStaticActionBar(['Select'], 0),",
-		'    contentLines: [data.message],',
-		'    scrollPos: data.scrollPos,',
-		'  });',
+		'export function instantiateLayout(layout: HudLayoutDescriptor, textContents: Record<string, string>) {',
+		'  return {',
+		'    containerTotalNum: layout.textDescriptors.length + (layout.imageObject?.length ?? 0),',
+		'    textObject: layout.textDescriptors.map(',
+		'      (descriptor) =>',
+		'        new TextContainerProperty({',
+		'          ...descriptor,',
+		"          content: truncate(textContents[descriptor.containerName] ?? ' ', CONTAINER_CONTENT_LIMIT),",
+		'        }),',
+		'    ),',
+		'    imageObject: layout.imageObject,',
+		'  };',
 		'}',
+		'',
+		'function spacesForPx(targetPx: number): string {',
+		"  if (targetPx <= 0) return '';",
+		"  return ' '.repeat(Math.floor(targetPx / SPACE_WIDTH));",
+		'}',
+		'',
+		'export function alignRow(left: string, right: string, innerWidthPx: number): string {',
+		'  const available = innerWidthPx - getTextWidth(left) - getTextWidth(right) - 4;',
+		'  if (available <= 0) return `${left} ${right}`;',
+		'  return `${left}${spacesForPx(available)}${right}`;',
+		'}',
+		'',
+		'export function alignThree(left: string, center: string, right: string, innerWidthPx: number): string {',
+		'  const leftWidth = getTextWidth(left);',
+		'  const centerWidth = getTextWidth(center);',
+		'  const rightWidth = getTextWidth(right);',
+		'  const centerStart = Math.max(0, Math.floor((innerWidthPx - centerWidth) / 2));',
+		'  const leftEnd = leftWidth + 4;',
+		'  const rightStart = Math.max(centerStart + centerWidth + 4, innerWidthPx - rightWidth);',
+		'',
+		'  if (leftEnd >= centerStart || centerStart + centerWidth >= rightStart) {',
+		'    return alignRow(`${left} ${center}`, right, innerWidthPx);',
+		'  }',
+		'',
+		'  const gapAfterLeft = centerStart - leftEnd;',
+		'  const gapAfterCenter = rightStart - (centerStart + centerWidth);',
+		'  return `${left}${spacesForPx(gapAfterLeft)}${center}${spacesForPx(gapAfterCenter)}${right}`;',
+		'}',
+		'',
+		'export function centerLine(text: string, innerWidthPx: number): string {',
+		'  const leftPx = Math.max(0, (innerWidthPx - getTextWidth(text) - 4) / 2);',
+		'  return `${spacesForPx(leftPx)}${text}`;',
+		'}',
+		'',
 	].join('\n'),
 );
 
-// ─── src/glasses/screens/home/home.ts ──────────────────────────────────────────
+// ─── src/glasses/view.ts ─────────────────────────────────────────────────────
+// Layout descriptor + renderer for the HUD page.
 
 write(
-	path.join(outDir, 'src', 'glasses', 'screens', 'home', 'home.ts'),
+	path.join(outDir, 'src', 'glasses', 'view.ts'),
 	[
-		'// home.ts — Logic container for the home screen (the component class).',
-		'// Owns the GlassScreen: action handling and data derivation.',
-		'// Delegates all rendering to HomeView — no display logic lives here.',
-		'// Nav state uses GlassNavState.highlightedIndex as the scroll position.',
+		"import type { HudLayoutDescriptor, HudRenderState, HudViewState } from './types';",
+		"import { centerLine } from './utils';",
 		'',
-		"import type { GlassScreen } from 'even-toolkit/glass-screen-router';",
-		"import { moveHighlight, calcMaxScroll } from 'even-toolkit/glass-nav';",
-		"import { DEFAULT_CONTENT_SLOTS } from 'even-toolkit/glass-display-builders';",
-		"import { renderHomeView } from './HomeView';",
-		"import type { AppSnapshot } from '../../shared';",
+		'const HUD_WIDTH = 576;',
+		'const BODY_WIDTH = 544;',
+		'const BORDER_RADIUS = 12;',
 		'',
-		'// C = void: this screen has no side-effect context (no navigate, no external actions).',
-		'export const homeScreen: GlassScreen<AppSnapshot, void> = {',
-		'  display(snapshot, nav) {',
-		'    return renderHomeView({',
-		'      message: snapshot.message,',
-		'      scrollPos: nav.highlightedIndex,',
-		'    });',
-		'  },',
-		'',
-		'  action(action, nav, snapshot) {',
-		'    const maxScroll = calcMaxScroll([snapshot.message].length, DEFAULT_CONTENT_SLOTS);',
-		"    if (action.type === 'HIGHLIGHT_MOVE') {",
-		'      return { ...nav, highlightedIndex: moveHighlight(nav.highlightedIndex, action.direction, maxScroll) };',
-		'    }',
-		'    return nav;',
-		'  },',
+		'const TEXT_LAYOUT: HudLayoutDescriptor = {',
+		"  key: 'main',",
+		'  textDescriptors: [',
+		'    {',
+		'      containerID: 1,',
+		"      containerName: 'header',",
+		'      xPosition: 12,',
+		'      yPosition: 0,',
+		'      width: HUD_WIDTH - 24,',
+		'      height: 40,',
+		'      paddingLength: 4,',
+		'    },',
+		'    {',
+		'      containerID: 2,',
+		"      containerName: 'body',",
+		'      xPosition: 0,',
+		'      yPosition: 38,',
+		'      width: HUD_WIDTH,',
+		'      height: 212,',
+		'      paddingLength: 15,',
+		'      borderWidth: 1,',
+		'      borderColor: 13,',
+		'      borderRadius: BORDER_RADIUS,',
+		'      isEventCapture: 1,',
+		'    },',
+		'    {',
+		'      containerID: 3,',
+		"      containerName: 'footer',",
+		'      xPosition: 12,',
+		'      yPosition: 251,',
+		'      width: HUD_WIDTH - 24,',
+		'      height: 35,',
+		'      paddingLength: 4,',
+		'    },',
+		'  ],',
 		'};',
-	].join('\n'),
-);
-
-// ─── src/glasses/selectors.ts ──────────────────────────────────────────────────
-
-write(
-	path.join(outDir, 'src', 'glasses', 'selectors.ts'),
-	[
-		'// selectors.ts — Screen router wiring.',
-		'// Maps route keys to GlassScreen instances. To add a screen: import it and add it here.',
-		"// onGlassAction is wrapped to drop the ctx param (void screens don't need it),",
-		'// matching the 3-arg signature useGlasses expects.',
 		'',
-		"import { createGlassScreenRouter } from 'even-toolkit/glass-screen-router';",
-		"import type { GlassAction, GlassNavState } from 'even-toolkit/types';",
-		"import { homeScreen } from './screens/home/home';",
-		"import type { AppSnapshot } from './shared';",
-		'',
-		'const { toDisplayData, onGlassAction: _onGlassAction } =',
-		"  createGlassScreenRouter<AppSnapshot, void>({ home: homeScreen }, 'home');",
-		'',
-		'export { toDisplayData };',
-		'',
-		'// Wrap to match useGlasses signature: (action, nav, snapshot) => GlassNavState',
-		'export const onGlassAction = (',
-		'  action: GlassAction,',
-		'  nav: GlassNavState,',
-		'  snapshot: AppSnapshot,',
-		'): GlassNavState => _onGlassAction(action, nav, snapshot, undefined);',
-	].join('\n'),
-);
-
-// ─── src/glasses/splash.ts ─────────────────────────────────────────────────────
-
-write(
-	path.join(outDir, 'src', 'glasses', 'splash.ts'),
-	[
-		'// splash.ts — Splash screen shown on glasses while the app is loading.',
-		'// createSplash takes a render callback that draws on a canvas context.',
-		'',
-		"import { createSplash } from 'even-toolkit/splash';",
-		'',
-		'export const appSplash = createSplash({',
-		'  render: (ctx, w, h) => {',
-		"    ctx.fillStyle = '#ffffff';",
-		"    ctx.font = 'bold 14px monospace';",
-		"    ctx.textAlign = 'center';",
-		"    ctx.textBaseline = 'middle';",
-		"    ctx.fillText('" + displayName + "', w / 2, h / 2);",
-		'  },',
-		'  tiles: 1,',
-		'  minTimeMs: 1500,',
-		'});',
-	].join('\n'),
-);
-
-// ─── src/glasses/AppGlasses.tsx ────────────────────────────────────────────────
-
-write(
-	path.join(outDir, 'src', 'glasses', 'AppGlasses.tsx'),
-	[
-		'// AppGlasses.tsx — The single React component owning the glasses connection.',
-		'// Mount once at the app root. Reads route + snapshot, sends display to glasses.',
-		'// useGlasses returns void — it manages the connection lifecycle internally.',
-		'// Renders nothing visible in the web UI.',
-		'',
-		"import { useCallback } from 'react';",
-		"import { useGlasses } from 'even-toolkit/useGlasses';",
-		"import { toDisplayData, onGlassAction } from './selectors';",
-		"import { appSplash } from './splash';",
-		"import type { AppSnapshot } from './shared';",
-		'',
-		'interface Props {',
-		'  snapshot: AppSnapshot;',
+		'export function createInitialHudState(): HudViewState {',
+		'  return {',
+		"    status: 'loading',",
+		'    now: new Date(),',
+		"    message: '',",
+		'  };',
 		'}',
 		'',
-		'export function AppGlasses({ snapshot }: Props) {',
-		'  // Wrap snapshot in a stable getter so the hook always reads the latest value.',
-		'  const getSnapshot = useCallback(() => snapshot, [snapshot]);',
-		'',
-		'  useGlasses({',
-		'    getSnapshot,',
-		'    toDisplayData,',
-		'    onGlassAction,',
-		"    deriveScreen: () => 'home',",
-		"    appName: '" + displayName + "',",
-		'    splash: appSplash,',
-		'  });',
-		'',
-		'  return null;',
+		'export function setHudReady(state: HudViewState, message: string): HudViewState {',
+		"  return { ...state, status: 'ready', now: new Date(), message };",
 		'}',
+		'',
+		'export function setHudError(state: HudViewState, errorMessage: string): HudViewState {',
+		"  return { ...state, status: 'error', now: new Date(), errorMessage };",
+		'}',
+		'',
+		'export function touchHudClock(state: HudViewState): HudViewState {',
+		'  return { ...state, now: new Date() };',
+		'}',
+		'',
+		'export function toHudRenderState(state: HudViewState): HudRenderState {',
+		"  if (state.status === 'loading') {",
+		'    return {',
+		'      layout: TEXT_LAYOUT,',
+		'      textContents: {',
+		"        header: centerLine('" + displayName + "', BODY_WIDTH),",
+		"        body: `\\n${centerLine('Loading…', BODY_WIDTH)}`,",
+		"        footer: '',",
+		'      },',
+		'    };',
+		'  }',
+		'',
+		"  if (state.status === 'error') {",
+		'    return {',
+		'      layout: TEXT_LAYOUT,',
+		'      textContents: {',
+		"        header: centerLine('" + displayName + "', BODY_WIDTH),",
+		"        body: `\\n${centerLine('Something went wrong', BODY_WIDTH)}\\n\\n${state.errorMessage ?? ''}`,",
+		"        footer: centerLine('Double tap to exit', BODY_WIDTH),",
+		'      },',
+		'    };',
+		'  }',
+		'',
+		'  return {',
+		'    layout: TEXT_LAYOUT,',
+		'    textContents: {',
+		"      header: centerLine('" + displayName + "', BODY_WIDTH),",
+		'      body: `\\n${centerLine(state.message, BODY_WIDTH)}`,',
+		"      footer: centerLine('Double tap to exit', BODY_WIDTH),",
+		'    },',
+		'  };',
+		'}',
+		'',
+	].join('\n'),
+);
+
+// ─── src/glasses/session.ts ──────────────────────────────────────────────────
+// Wraps the bridge: createStartUpPage on first render, textContainerUpgrade on
+// subsequent renders, rebuildPage when the layout key changes.
+
+write(
+	path.join(outDir, 'src', 'glasses', 'session.ts'),
+	[
+		'import {',
+		'  CreateStartUpPageContainer,',
+		'  RebuildPageContainer,',
+		'  StartUpPageCreateResult,',
+		'  TextContainerUpgrade,',
+		'  type EvenAppBridge,',
+		"} from '@evenrealities/even_hub_sdk';",
+		"import type { HudRenderState } from './types';",
+		"import { instantiateLayout } from './utils';",
+		'',
+		'export class HudSession {',
+		'  private pageCreated = false;',
+		'  private activeLayoutKey: string | null = null;',
+		'  private lastContents: Record<string, string> = {};',
+		'',
+		'  constructor(private readonly bridge: EvenAppBridge) {}',
+		'',
+		'  async render(next: HudRenderState): Promise<void> {',
+		'    const params = instantiateLayout(next.layout, next.textContents);',
+		'',
+		'    if (!this.pageCreated) {',
+		'      let created: StartUpPageCreateResult;',
+		'      try {',
+		'        created = await this.bridge.createStartUpPageContainer(new CreateStartUpPageContainer(params));',
+		'      } catch {',
+		'        return;',
+		'      }',
+		'',
+		'      if (created === StartUpPageCreateResult.success) {',
+		'        this.pageCreated = true;',
+		'        this.activeLayoutKey = next.layout.key;',
+		'        this.lastContents = { ...next.textContents };',
+		'        return;',
+		'      }',
+		'',
+		'      const takeover = await this.bridge.rebuildPageContainer(new RebuildPageContainer(params));',
+		'      if (takeover) {',
+		'        this.pageCreated = true;',
+		'        this.activeLayoutKey = next.layout.key;',
+		'        this.lastContents = { ...next.textContents };',
+		'      }',
+		'      return;',
+		'    }',
+		'',
+		'    if (this.activeLayoutKey !== next.layout.key) {',
+		'      const ok = await this.bridge.rebuildPageContainer(new RebuildPageContainer(params));',
+		'      if (!ok) return;',
+		'      this.activeLayoutKey = next.layout.key;',
+		'      this.lastContents = {};',
+		'    }',
+		'',
+		'    for (const descriptor of next.layout.textDescriptors) {',
+		"      const content = next.textContents[descriptor.containerName] ?? '';",
+		'      if (this.lastContents[descriptor.containerName] === content) continue;',
+		'      const previousLength = this.lastContents[descriptor.containerName]?.length ?? 0;',
+		'      const ok = await this.bridge.textContainerUpgrade(',
+		'        new TextContainerUpgrade({',
+		'          containerID: descriptor.containerID,',
+		'          containerName: descriptor.containerName,',
+		'          contentOffset: 0,',
+		'          contentLength: Math.max(previousLength, content.length),',
+		'          content,',
+		'        }),',
+		'      );',
+		'      if (ok) this.lastContents[descriptor.containerName] = content;',
+		'    }',
+		'  }',
+		'}',
+		'',
+	].join('\n'),
+);
+
+// ─── src/glasses-main.ts ─────────────────────────────────────────────────────
+// Pure-TS HUD entry point. Side-effect imported by main.tsx.
+// Wires gestures: DOUBLE_CLICK → shutDownPageContainer(1) (exits the app).
+
+write(
+	path.join(outDir, 'src', 'glasses-main.ts'),
+	[
+		"import { OsEventTypeList, type EvenHubEvent, waitForEvenAppBridge } from '@evenrealities/even_hub_sdk';",
+		"import { HudSession } from './glasses/session';",
+		"import type { HudViewState } from './glasses/types';",
+		'import {',
+		'  createInitialHudState,',
+		'  setHudReady,',
+		'  toHudRenderState,',
+		'  touchHudClock,',
+		"} from './glasses/view';",
+		'',
+		'let state: HudViewState = createInitialHudState();',
+		'let bridgeRef: Awaited<ReturnType<typeof waitForEvenAppBridge>> | null = null;',
+		'let session: HudSession | null = null;',
+		'',
+		'function resolveEventType(event: EvenHubEvent) {',
+		'  return event.textEvent?.eventType ?? event.sysEvent?.eventType ?? event.listEvent?.eventType;',
+		'}',
+		'',
+		'async function render(): Promise<void> {',
+		'  if (!session) return;',
+		'  await session.render(toHudRenderState(state));',
+		'}',
+		'',
+		'async function handleEvent(event: EvenHubEvent): Promise<void> {',
+		'  if (!bridgeRef) return;',
+		'  const type = resolveEventType(event);',
+		'',
+		'  // Double tap → shut down the HUD page (returns user to the Even app menu).',
+		'  if (type === OsEventTypeList.DOUBLE_CLICK_EVENT) {',
+		'    await bridgeRef.shutDownPageContainer(1);',
+		'    return;',
+		'  }',
+		'',
+		'  // Single click / undefined (CLICK_EVENT === 0 sometimes arrives as undefined).',
+		'  if (type === OsEventTypeList.CLICK_EVENT || type === undefined) {',
+		'    state = touchHudClock(state);',
+		'    await render();',
+		'  }',
+		'}',
+		'',
+		'async function boot(): Promise<void> {',
+		'  try {',
+		"    console.log('[GlassesMain] waiting for Even bridge...');",
+		'    bridgeRef = await waitForEvenAppBridge();',
+		"    console.log('[GlassesMain] bridge acquired');",
+		'',
+		'    session = new HudSession(bridgeRef);',
+		'    bridgeRef.onEvenHubEvent((event) => {',
+		'      void handleEvent(event);',
+		'    });',
+		'',
+		"    state = setHudReady(state, 'Hello from " + displayName + "');",
+		'    await render();',
+		'',
+		'    // Tick once a minute to keep any time-sensitive content fresh.',
+		'    window.setInterval(() => {',
+		'      state = touchHudClock(state);',
+		'      void render();',
+		'    }, 60_000);',
+		'  } catch (error) {',
+		"    console.warn('[GlassesMain] bridge unavailable — running in web-only mode', error);",
+		'  }',
+		'}',
+		'',
+		'void boot();',
+		'',
 	].join('\n'),
 );
 
@@ -498,40 +694,44 @@ write(
 	[
 		'# ' + displayName,
 		'',
-		'Even Realities glasses app built with [even-toolkit](https://github.com/fabioglimb/even-toolkit).',
+		'Even Realities G2 glasses app.',
+		'',
+		'## Architecture',
+		'',
+		'Two layers run side-by-side in the same Vite bundle:',
+		'',
+		'- **Web UI** (`src/App.tsx`) — built with [even-toolkit](https://www.npmjs.com/package/even-toolkit) (`even-toolkit/web`). Renders inside the iPhone WebView.',
+		'- **Glasses HUD** (`src/glasses-main.ts` + `src/glasses/*`) — pure TypeScript using the **official `@evenrealities/even_hub_sdk`** directly. No framework, no toolkit. Side-effect-imported from `main.tsx`.',
 		'',
 		'## Structure',
 		'',
 		'```',
 		'src/',
-		'  glasses/                  — Glasses display layer',
-		'    shared.ts               — AppSnapshot + AppActions types',
-		'    selectors.ts            — Screen router wiring',
-		'    splash.ts               — Splash screen',
-		'    AppGlasses.tsx          — Glasses connection component (mount at root)',
-		'    screens/',
-		'      {page}/                 — Screen',
-		'        {page}.ts             — Logic container (component class)',
-		'        {Page}View.ts         — Pure display function (component template)',
-		'  App.tsx                   — Web UI root',
-		'  main.tsx                  — Entry point',
-		'  app.css                   — Tailwind + even-toolkit theme imports',
+		'  main.tsx              — React entry; side-effect-imports glasses-main',
+		'  App.tsx               — Web UI (even-toolkit/web)',
+		'  app.css               — Tailwind + even-toolkit theme imports',
+		'  glasses-main.ts       — HUD bootstrap (bridge + event loop)',
+		'  glasses/',
+		'    types.ts            — Layout + view state types',
+		'    utils.ts            — Text alignment helpers (centerLine, alignRow, alignThree)',
+		'    view.ts             — Layout descriptor + render state builder',
+		'    session.ts          — Bridge wrapper (page create / rebuild / upgrade)',
 		'```',
+		'',
+		'## Gestures',
+		'',
+		'- **Single click** — refresh / advance (current scaffold just touches the clock)',
+		'- **Double click** — `bridge.shutDownPageContainer(1)` exits the HUD',
 		'',
 		'## Dev',
 		'',
 		'```bash',
-		'npm run dev      # start dev server at localhost:5173',
+		'npm run dev      # vite dev server at 0.0.0.0:5173',
+		'npm run qr       # QR code to load on your phone',
+		'npm run emulator # browser-based G2 simulator',
 		'npm run build    # production build',
 		'npm run pack     # build + package as .ehpk for Even Hub',
-		'npm run qr       # show QR code for sideloading',
 		'```',
-		'',
-		'## Adding a screen',
-		'',
-		'1. Create `src/glasses/screens/<name>/` with `<name>.ts` (logic) and `<Name>View.ts` (display)',
-		'2. Register it in `src/glasses/selectors.ts`',
-		'3. Add a route pattern to `deriveScreen` in `AppGlasses.tsx`',
 	].join('\n'),
 );
 
@@ -551,10 +751,14 @@ try {
 	run('git init', outDir);
 	run('git add .', outDir);
 	run('git commit -m "core: initial scaffold"', outDir);
-	run('git flow init -d', outDir);
-	run('git rm -r --cached ' + appPath, rootDir);
 } catch {
 	console.warn('\n⚠  git init/commit failed — run manually if needed.\n');
+}
+
+try {
+	run('git flow init -d', outDir);
+} catch {
+	console.warn('\n⚠  git flow init failed — install git-flow or run manually.\n');
 }
 
 // ─── done ────────────────────────────────────────────────────────────────────

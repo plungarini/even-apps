@@ -1,6 +1,6 @@
 # even-apps
 
-A monorepo of Even Hub apps for the [Even Realities G2](https://www.evenrealities.com) smart glasses platform.
+A monorepo of Even Hub apps for the [Even Realities Glasses](https://www.evenrealities.com) smart glasses platform.
 
 Each app in `apps/` is an independent Git repository managed as a submodule. Apps are built with TypeScript + Vite and communicate with the G2 glasses via the Even Hub SDK.
 
@@ -17,12 +17,6 @@ even-apps/
 └── README.md      # This file
 ```
 
-## Apps
-
-| App                                 | Description                                                                          |
-| ----------------------------------- | ------------------------------------------------------------------------------------ |
-| [`reddit-feed`](./apps/reddit-feed) | Full-featured Reddit feed with auth, caching, background sync, and post interactions |
-
 ## Cloning
 
 ```bash
@@ -35,11 +29,7 @@ git submodule update --init --recursive
 
 ## Adding a New App
 
-See [`CLAUDE.md`](./CLAUDE.md) for the complete guide. Quick summary:
-
-1. Create the app as its own GitHub repo (named `<name>-even`)
-2. From this repo root: `git submodule add git@github.com:plungarini/<name>-even.git apps/<name>`
-3. Commit the `.gitmodules` update
+Use [`create-app.js`](./scripts/create-app.js) to create a new app submodule.
 
 ## Development
 

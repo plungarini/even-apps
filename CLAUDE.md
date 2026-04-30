@@ -1,12 +1,12 @@
 # Even Apps – Agent Guide
 
-This document provides comprehensive guidance for AI coding agents working on the Even Apps monorepo. This repo is a collection of Even Hub apps for the Even Realities G2 smart glasses platform.
+This document provides comprehensive guidance for AI coding agents working on the Even Apps monorepo. This repo is a collection of Even Hub apps for the Even Realities smart glasses platform.
 
 ---
 
 ## Project Overview
 
-Even Apps is a **monorepo of independent Even Hub apps**, each managed as a Git submodule under `apps/`. The apps target the Even Realities G2 smart glasses via the Even Hub platform.
+Even Apps is a **monorepo of independent Even Hub apps**, each managed as a Git submodule under `apps/`. The apps target the Even Realities smart glasses via the Even Hub platform.
 
 ### Platform Architecture
 
@@ -48,13 +48,13 @@ Each app in `apps/` is an **independent Git repository** linked via Git submodul
 
 ### Per-App Stack
 
-| Layer | Technology |
-|---|---|
-| Language | TypeScript |
-| Build tool | Vite |
-| SDK | `@evenrealities/even_hub_sdk` (latest: `^0.0.9`) |
-| CLI | `@evenrealities/evenhub-cli` (latest: `^0.1.10`) |
-| Simulator | `@evenrealities/evenhub-simulator` (latest: `^0.6.2`) |
+| Layer       | Technology                                             |
+| ----------- | ------------------------------------------------------ |
+| Language    | TypeScript                                             |
+| Build tool  | Vite                                                   |
+| SDK         | `@evenrealities/even_hub_sdk` (latest: `^0.0.9`)       |
+| CLI         | `@evenrealities/evenhub-cli` (latest: `^0.1.10`)       |
+| Simulator   | `@evenrealities/evenhub-simulator` (latest: `^0.6.2`)  |
 | Optional UI | `@jappyjan/even-realities-ui` (browser settings pages) |
 
 ### No Framework Required
@@ -143,54 +143,54 @@ Every app submodule must follow this layout:
 
 ```json
 {
-  "name": "<app-name>-even",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "dev":   "vite --host 0.0.0.0 --port 5173",
-    "build": "vite build",
-    "qr":    "evenhub qr --http --port 5173",
-    "pack":  "npm run build && evenhub pack app.json dist -o <app-name>.ehpk"
-  },
-  "dependencies": {
-    "@evenrealities/even_hub_sdk": "^0.0.9"
-  },
-  "devDependencies": {
-    "@evenrealities/evenhub-cli":       "^0.1.10",
-    "@evenrealities/evenhub-simulator": "^0.6.2",
-    "typescript": "^5.0.0",
-    "vite":       "^6.0.0"
-  }
+	"name": "<app-name>-even",
+	"version": "1.0.0",
+	"private": true,
+	"scripts": {
+		"dev": "vite --host 0.0.0.0 --port 5173",
+		"build": "vite build",
+		"qr": "evenhub qr --http --port 5173",
+		"pack": "npm run build && evenhub pack app.json dist -o <app-name>.ehpk"
+	},
+	"dependencies": {
+		"@evenrealities/even_hub_sdk": "^0.0.9"
+	},
+	"devDependencies": {
+		"@evenrealities/evenhub-cli": "^0.1.10",
+		"@evenrealities/evenhub-simulator": "^0.6.2",
+		"typescript": "^5.0.0",
+		"vite": "^6.0.0"
+	}
 }
 ```
 
 ### Standard `vite.config.ts`
 
 ```typescript
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vite';
 
 export default defineConfig({
-  server: {
-    host: true,
-    port: 5173,
-  },
-})
+	server: {
+		host: true,
+		port: 5173,
+	},
+});
 ```
 
 ### Standard `tsconfig.json`
 
 ```json
 {
-  "compilerOptions": {
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "outDir": "dist"
-  },
-  "include": ["src"]
+	"compilerOptions": {
+		"target": "ES2022",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"outDir": "dist"
+	},
+	"include": ["src"]
 }
 ```
 
@@ -198,18 +198,18 @@ export default defineConfig({
 
 ```json
 {
-  "package_id": "com.plungarini.<appname>",
-  "edition": "202601",
-  "name": "<App Display Name>",
-  "version": "1.0.0",
-  "min_app_version": "0.1.0",
-  "tagline": "Short one-line description",
-  "description": "Longer description shown in the Even Hub portal.",
-  "author": "Pietro Lungarini",
-  "entrypoint": "index.html",
-  "permissions": {
-    "network": ["*"]
-  }
+	"package_id": "com.plungarini.<appname>",
+	"edition": "202601",
+	"name": "<App Display Name>",
+	"version": "1.0.0",
+	"min_app_version": "0.1.0",
+	"tagline": "Short one-line description",
+	"description": "Longer description shown in the Even Hub portal.",
+	"author": "Pietro Lungarini",
+	"entrypoint": "index.html",
+	"permissions": {
+		"network": ["*"]
+	}
 }
 ```
 
@@ -259,69 +259,68 @@ The `.ehpk` file is for future submission to the Even Hub portal. Never commit `
 ### Initialisation
 
 ```typescript
-import { waitForEvenAppBridge } from '@evenrealities/even_hub_sdk'
+import { waitForEvenAppBridge } from '@evenrealities/even_hub_sdk';
 
-const bridge = await waitForEvenAppBridge()
+const bridge = await waitForEvenAppBridge();
 ```
 
 ### Sending the startup page
 
 ```typescript
-import {
-  CreateStartUpPageContainer,
-  TextContainerProperty,
-} from '@evenrealities/even_hub_sdk'
+import { CreateStartUpPageContainer, TextContainerProperty } from '@evenrealities/even_hub_sdk';
 
 const textContainer = new TextContainerProperty({
-  xPosition: 0,
-  yPosition: 0,
-  width: 576,
-  height: 288,
-  borderWidth: 0,
-  paddingLength: 8,
-  containerID: 1,
-  containerName: 'main',
-  content: 'Hello G2!',
-  isEventCapture: 1,
-})
+	xPosition: 0,
+	yPosition: 0,
+	width: 576,
+	height: 288,
+	borderWidth: 0,
+	paddingLength: 8,
+	containerID: 1,
+	containerName: 'main',
+	content: 'Hello G2!',
+	isEventCapture: 1,
+});
 
 await bridge.createStartUpPageContainer(
-  new CreateStartUpPageContainer({
-    containerTotalNum: 1,
-    textObject: [textContainer],
-  })
-)
+	new CreateStartUpPageContainer({
+		containerTotalNum: 1,
+		textObject: [textContainer],
+	}),
+);
 ```
 
 ### Receiving input events
 
 ```typescript
-import { OsEventTypeList } from '@evenrealities/even_hub_sdk'
+import { OsEventTypeList } from '@evenrealities/even_hub_sdk';
 
 bridge.onEvenHubEvent((event) => {
-  const type = event.textEvent?.eventType ?? event.sysEvent?.eventType
-  // Note: CLICK_EVENT = 0 may arrive as undefined — always check both
-  if (type === OsEventTypeList.CLICK_EVENT || type === undefined) {
-    // handle click
-  }
-  if (type === OsEventTypeList.SCROLL_BOTTOM_EVENT) {
-    // handle scroll down / next page
-  }
-})
+	const type = event.textEvent?.eventType ?? event.sysEvent?.eventType;
+	// Note: CLICK_EVENT = 0 may arrive as undefined — always check both
+	if (type === OsEventTypeList.CLICK_EVENT || type === undefined) {
+		// handle click
+	}
+	if (type === OsEventTypeList.SCROLL_BOTTOM_EVENT) {
+		// handle scroll down / next page
+	}
+});
 ```
 
 ### Updating content without rebuild
 
 ```typescript
-import { TextContainerUpgrade } from '@evenrealities/even_hub_sdk'
+import { TextContainerUpgrade } from '@evenrealities/even_hub_sdk';
 
-await bridge.textContainerUpgrade(new TextContainerUpgrade({
-  containerID: 1,
-  containerName: 'main',
-  contentOffset: 0,
-  contentLength: currentContent.length,
-  content: newContent,
-}))
+await bridge.textContainerUpgrade(
+	new TextContainerUpgrade({
+		containerID: 1,
+		containerName: 'main',
+		contentOffset: 0,
+		contentLength: currentContent.length,
+		content: newContent,
+	}),
+);
 ```
 
 ### Bridge Local Storage (persistent storage)
@@ -329,8 +328,8 @@ await bridge.textContainerUpgrade(new TextContainerUpgrade({
 The only storage that survives app/glasses restarts inside the Even Hub WebView:
 
 ```typescript
-await bridge.setLocalStorage('key', 'value') // returns boolean
-const value = await bridge.getLocalStorage('key') // returns string
+await bridge.setLocalStorage('key', 'value'); // returns boolean
+const value = await bridge.getLocalStorage('key'); // returns string
 ```
 
 **Browser `localStorage` and `IndexedDB` are wiped** when the WebView restarts (app update, glasses reconnect, OS memory pressure). Any Firebase Auth setup with `browserLocalPersistence` will appear to lose its session on every cold start. For auth that must survive restarts, mirror your session pointer into Bridge Local Storage and rehydrate from there on boot.
@@ -356,21 +355,21 @@ There is no `removeLocalStorage` — write an empty string to delete.
 
 ## Display Constraints (Critical)
 
-| Property | Value |
-|---|---|
-| Canvas | 576 × 288 px per eye |
-| Colour | 4-bit greyscale (16 shades of green) |
-| Max containers per page | **12** (v0.0.9+, was 4) |
-| Event-capture containers | Exactly **1** must have `isEventCapture: 1` |
-| Text content limit (startup/rebuild) | 1000 chars |
-| Text content limit (upgrade) | 2000 chars |
-| Image max size | **288 × 144 px** (v0.0.9+, was 200 × 100) |
-| Image min size | 20 × 20 px |
-| Image format | PNG → 4-bit greyscale by host |
-| List items max per container | 20 |
-| textObject max items | **8** (v0.0.9+) |
-| imageObject max items | **4** (v0.0.9+) |
-| Concurrent image sends | Not allowed — queue sequentially |
+| Property                             | Value                                       |
+| ------------------------------------ | ------------------------------------------- |
+| Canvas                               | 576 × 288 px per eye                        |
+| Colour                               | 4-bit greyscale (16 shades of green)        |
+| Max containers per page              | **12** (v0.0.9+, was 4)                     |
+| Event-capture containers             | Exactly **1** must have `isEventCapture: 1` |
+| Text content limit (startup/rebuild) | 1000 chars                                  |
+| Text content limit (upgrade)         | 2000 chars                                  |
+| Image max size                       | **288 × 144 px** (v0.0.9+, was 200 × 100)   |
+| Image min size                       | 20 × 20 px                                  |
+| Image format                         | PNG → 4-bit greyscale by host               |
+| List items max per container         | 20                                          |
+| textObject max items                 | **8** (v0.0.9+)                             |
+| imageObject max items                | **4** (v0.0.9+)                             |
+| Concurrent image sends               | Not allowed — queue sequentially            |
 
 See `docs/even-hub-research.md` for the full reference.
 
@@ -378,14 +377,14 @@ See `docs/even-hub-research.md` for the full reference.
 
 ## Naming Conventions
 
-| Thing | Convention | Example |
-|---|---|---|
-| Submodule folder | kebab-case | `apps/weather-even` |
-| GitHub repo name | `<name>-even` | `weather-even` |
-| `package_id` | reverse-domain, no hyphens | `com.plungarini.weather` |
-| TypeScript files | kebab-case | `weather-service.ts` |
-| Classes | PascalCase | `WeatherService` |
-| Functions/variables | camelCase | `fetchWeather` |
+| Thing               | Convention                 | Example                  |
+| ------------------- | -------------------------- | ------------------------ |
+| Submodule folder    | kebab-case                 | `apps/weather-even`      |
+| GitHub repo name    | `<name>-even`              | `weather-even`           |
+| `package_id`        | reverse-domain, no hyphens | `com.plungarini.weather` |
+| TypeScript files    | kebab-case                 | `weather-service.ts`     |
+| Classes             | PascalCase                 | `WeatherService`         |
+| Functions/variables | camelCase                  | `fetchWeather`           |
 
 ---
 
@@ -451,17 +450,17 @@ npm install -D @evenrealities/evenhub-simulator@^0.6.2
 
 ## Resources
 
-| Resource | URL |
-|---|---|
-| Even Hub Developer Portal | https://evenhub.evenrealities.com |
-| Even Hub Discord (developer community) | https://discord.gg/GsuDkKDXDe |
-| even_hub_sdk on npm | https://www.npmjs.com/package/@evenrealities/even_hub_sdk |
-| evenhub-cli on npm | https://www.npmjs.com/package/@evenrealities/evenhub-cli |
-| evenhub-simulator on npm | https://www.npmjs.com/package/@evenrealities/evenhub-simulator |
-| even-dev simulator (community) | https://github.com/BxNxM/even-dev |
-| G2 SDK reverse-engineering notes | https://github.com/nickustinov/even-g2-notes |
-| Example: chess app | https://github.com/dmyster145/EvenChess |
-| Example: reddit app | https://github.com/fuutott/rdt-even-g2-rddit-client |
-| Example: weather app | https://github.com/nickustinov/weather-even-g2 |
-| Example: tesla app | https://github.com/nickustinov/tesla-even-g2 |
-| Deep research doc | ./docs/even-hub-research.md |
+| Resource                               | URL                                                            |
+| -------------------------------------- | -------------------------------------------------------------- |
+| Even Hub Developer Portal              | https://evenhub.evenrealities.com                              |
+| Even Hub Discord (developer community) | https://discord.gg/GsuDkKDXDe                                  |
+| even_hub_sdk on npm                    | https://www.npmjs.com/package/@evenrealities/even_hub_sdk      |
+| evenhub-cli on npm                     | https://www.npmjs.com/package/@evenrealities/evenhub-cli       |
+| evenhub-simulator on npm               | https://www.npmjs.com/package/@evenrealities/evenhub-simulator |
+| even-dev simulator (community)         | https://github.com/BxNxM/even-dev                              |
+| G2 SDK reverse-engineering notes       | https://github.com/nickustinov/even-g2-notes                   |
+| Example: chess app                     | https://github.com/dmyster145/EvenChess                        |
+| Example: reddit app                    | https://github.com/fuutott/rdt-even-g2-rddit-client            |
+| Example: weather app                   | https://github.com/nickustinov/weather-even-g2                 |
+| Example: tesla app                     | https://github.com/nickustinov/tesla-even-g2                   |
+| Deep research doc                      | ./docs/even-hub-research.md                                    |

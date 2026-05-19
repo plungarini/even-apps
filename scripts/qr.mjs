@@ -4,7 +4,7 @@ import { networkInterfaces } from 'node:os';
 
 const ip = Object.values(networkInterfaces())
 	.flat()
-	.find((i) => i.family === 'IPv4' && !i.internal)?.address;
+	.find((i) => i?.family === 'IPv4' && !i?.internal)?.address;
 
 if (!ip) {
 	console.error('no LAN IP found');
